@@ -5,9 +5,14 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  NotFoundException,
   Param,
+  ParseIntPipe,
+  UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
+import { UserNotFoundExceptions } from 'src/users/exceptions/UserNotFoundExceptions';
+import { HttpExceptionFilter } from 'src/users/filters/HttpException.filter';
 import { UsersService } from 'src/users/services/users/users.service';
 import { SerializedUser } from 'src/users/types';
 
@@ -24,10 +29,33 @@ export class UsersController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/:username')
+  @Get('username/:username')
   getByUsername(@Param('username') username: string) {
     const user = this.userService.getUserByUsername(username);
     if (user) return new SerializedUser(user);
     else throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+  }
+
+  // nestjs
+  // @UseInterceptors(ClassSerializerInterceptor)
+  // @Get('id/:id')
+  // getUserById(@Param('id', ParseIntPipe) id: number) {
+  //   const user = this.userService.getUserById(id);
+
+  //   if (user) return new SerializedUser(user);
+  //   // else throw new UserNotFoundExceptions('User was not found', 500);
+  //   else throw new NotFoundException();
+  // }
+
+  // custom exceptions
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('id/:id')
+  @UseFilters(HttpExceptionFilter)
+  getUserById(@Param('id', ParseIntPipe) id: number) {
+    const user = this.userService.getUserById(id);
+
+    if (user) return new SerializedUser(user);
+    // else throw new UserNotFoundExceptions('User was not found', 500);
+    else throw new UserNotFoundExceptions();
   }
 }

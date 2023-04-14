@@ -45,4 +45,10 @@ export class UsersService {
       username,
     });
   }
+
+  findUserById(id: number) {
+    return this.userRepository.findOneBy({
+      id,
+    });
+  }
 }
